@@ -1,28 +1,29 @@
-import 'package:car_dashcam/Model/recording_model.dart';
-import 'package:car_dashcam/Utils/route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/adapters.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'Model/video_model.dart';
+import 'screens/home_screen.dart';
 
-Future<void> main() async {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
-  Hive.registerAdapter(RecordingAdapter());
-  await Hive.openBox<Recording>('recordings');
+  Hive.registerAdapter(VideoModelAdapter());
+  await Hive.openBox<VideoModel>('videos');
 
   runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      routerConfig: approuter,
-      title: 'Flutter Demo',
+    return MaterialApp(
+      title: 'Dash Cam App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
       ),
+      home: const HomeScreen(),
     );
   }
 }
