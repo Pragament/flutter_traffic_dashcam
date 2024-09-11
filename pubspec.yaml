@@ -21,6 +21,9 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   uuid: ^4.5.0
+  keep_screen_on: ^3.0.0
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.4
   
 
 dev_dependencies:
