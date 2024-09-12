@@ -8,8 +8,7 @@ final cameraControllerProvider = FutureProvider<CameraController?>((ref) async {
   try {
     final cameras = await availableCameras();
     if (cameras.isNotEmpty) {
-      final cameraController =
-          CameraController(cameras[0], ResolutionPreset.high);
+      final cameraController = CameraController(cameras[0], ResolutionPreset.high);
       await cameraController.initialize(); // Ensure the camera is initialized
       return cameraController;
     } else {
@@ -22,22 +21,32 @@ final cameraControllerProvider = FutureProvider<CameraController?>((ref) async {
 });
 
 // Video service provider that depends on the camera controller
-final videoServiceProvider = Provider<VideoService>((ref) {
-  final cameraController = ref.watch(cameraControllerProvider).value;
-  if (cameraController != null && cameraController.value.isInitialized) {
-    return VideoService(cameraController);
-  } else {
-    throw Exception("CameraController not initialized.");
-  }
+final videoServiceProvider = Provider<VideoService?>((ref) {
+  final cameraControllerAsyncValue = ref.watch(cameraControllerProvider);
+
+  // Handle different states of the camera controller provider
+  return cameraControllerAsyncValue.when(
+    data: (cameraController) {
+      if (cameraController != null && cameraController.value.isInitialized) {
+        return VideoService(cameraController);
+      } else {
+        return null; // Return null if the camera is not initialized
+      }
+    },
+    loading: () => null, // Return null while loading
+    error: (e, stackTrace) {
+      print('Error creating video service: $e');
+      return null; // Return null if there was an error
+    },
+  );
 });
 
 // Recording state provider
 final recordingStateProvider = StateProvider<bool>((ref) => false);
 
 // Video list provider to manage saved videos
-final videoListProvider =
-    StateNotifierProvider<VideoListNotifier, List<VideoModel>>(
-  (ref) => VideoListNotifier(),
+final videoListProvider = StateNotifierProvider<VideoListNotifier, List<VideoModel>>(
+      (ref) => VideoListNotifier(),
 );
 
 class VideoListNotifier extends StateNotifier<List<VideoModel>> {
@@ -51,3 +60,4 @@ class VideoListNotifier extends StateNotifier<List<VideoModel>> {
     state = videos;
   }
 }
+

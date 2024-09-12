@@ -1,8 +1,8 @@
+import 'package:car_dashcam/Widgets/video_controls.dart';
+import 'package:car_dashcam/provider/video_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../Widgets/video_controls.dart';
-import '../provider/video_provider.dart';
 import '../services/video_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -13,7 +13,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late CameraController cameraController;
+  late CameraController _cameraController;
   late VideoService videoService;
   bool isCameraInitialized = false;
 
@@ -25,9 +25,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> initCamera() async {
     final cameras = await availableCameras();
-    cameraController = CameraController(cameras[0], ResolutionPreset.high);
-    await cameraController.initialize();
-    videoService = VideoService(cameraController);
+    _cameraController = CameraController(cameras[0], ResolutionPreset.high);
+    await _cameraController.initialize();
+    videoService = VideoService(_cameraController);
     // ref.read(videoServiceProvider.notifire).state = videoService; // Update the videoService provider
     setState(() {
       isCameraInitialized = true;
@@ -37,7 +37,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final cameraController = ref.watch(cameraControllerProvider).value;
-    final isRecording = ref.watch(recordingStateProvider); // Check recording state
+    final isRecording = ref.watch(recordingStateProvider);
     final videoService = ref.watch(videoServiceProvider);
 
     return Scaffold(
@@ -46,63 +46,84 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
       body: cameraController != null && cameraController.value.isInitialized
           ? Column(
-        children: [
-          Stack(
-            alignment: Alignment.bottomLeft,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 580.0,
-                child: CameraPreview(cameraController), // Display the camera preview
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 20.0, bottom: 20.0, top: 5.0),
-                child: FloatingActionButton(
-                  onPressed: () async {
-                    try {
-                      if (cameraController.value.isInitialized) {
-                        if (isRecording) {
-                          final video = await videoService.stopRecording();
-                          if (video != null) {
-                            ref.read(videoListProvider.notifier).addVideo(video);
+              children: [
+                Stack(
+                  alignment: Alignment.bottomLeft,
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: AspectRatio(
+                        aspectRatio: cameraController.value.aspectRatio,
+                        child: CameraPreview(cameraController),
+                      ),// Display the camera preview
+                    ),
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 20.0, bottom: 20.0, top: 5.0),
+                      child: FloatingActionButton(
+                        onPressed: () async
+                        {
+                          if (cameraController.value.isInitialized) {
+                            try {
+                              if (isRecording) {
+                                final videoService = ref.read(videoServiceProvider);
+                                if (videoService != null) {
+                                  final video = await videoService.stopRecording();
+                                  if (video != null) {
+                                    ref.read(videoListProvider.notifier).addVideo(video);
+                                  }
+                                  ref.read(recordingStateProvider.notifier).state = false;
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Video service not initialized')),
+                                  );
+                                }
+                              } else {
+                                final videoService = ref.read(videoServiceProvider);
+                                if (videoService != null) {
+                                  await videoService.startRecording();
+                                  ref.read(recordingStateProvider.notifier).state = true;
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Video service not initialized')),
+                                  );
+                                }
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: ${e.toString()}')),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Camera not initialized')),
+                            );
                           }
-                          ref.read(recordingStateProvider.notifier).state = false;
-                        } else {
-                          await videoService.startRecording();
-                          ref.read(recordingStateProvider.notifier).state = true;
-                        }
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Camera not initialized')),
-                        );
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: ${e.toString()}')),
-                      );
-                    }
-                  },
-                  disabledElevation: 0.0,
-                  shape: const CircleBorder(),
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    isRecording ? Icons.stop : Icons.fiber_manual_record,
-                    color: isRecording ? Colors.black : Colors.red,
-                  ),
+                        },
+                        disabledElevation: 0.0,
+                        shape: const CircleBorder(),
+                        backgroundColor: Colors.white,
+                        child: Icon(
+                          isRecording ? Icons.stop : Icons.fiber_manual_record,
+                          color: isRecording ? Colors.black : Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const VideoControls(),
-        ],
-      )
+                const SizedBox(height: 10.0,),
+                const VideoControls(),
+              ],
+            )
           : const Center(child: CircularProgressIndicator()),
     );
   }
 
   @override
   void dispose() {
-    cameraController.dispose();
+    _cameraController.dispose();
     super.dispose();
   }
 }
