@@ -1,16 +1,19 @@
 import 'package:car_dashcam/provider/video_provider.dart';
+import 'package:car_dashcam/screens/videoplayer/videoscreenplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class RecordinglistScreen extends ConsumerStatefulWidget {
-  const RecordinglistScreen({Key? key}) : super(key: key);
+  const RecordinglistScreen({super.key});
 
   @override
   _RecordinglistScreenState createState() => _RecordinglistScreenState();
 }
 
 class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
+
+
   @override
   Widget build(BuildContext context) {
     final videoList = ref.watch(videoListProvider);
@@ -23,15 +26,15 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
           ? const Center(child: Text('No recordings available'))
           : ListView.builder(
         itemCount: videoList.length,
-        itemBuilder: (BuildContext context, int index) {
+        itemBuilder: (BuildContext context, index) {
           final video = videoList[index];
 
           return Padding(
             padding: const EdgeInsets.all(10.0),
             child: GestureDetector(
               onTap: () {
-                // Navigate using GoRouter and pass the video filePath as a parameter
-                context.go('/video_player', extra: video.filePath);
+                // context.go('/video_player', extra: video.filePath);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => VideoPlayerScreen(filePath: video.filePath)));
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -54,7 +57,8 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                       child: ColoredBox(color: Colors.black),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.play_circle_outline_sharp, color: Colors.blue, size: 48.0),
+                      icon: const Icon(Icons.play_circle_outline_sharp,
+                          color: Colors.blue, size: 48.0),
                       onPressed: () {
                         // This is now handled by GestureDetector's onTap
                       },

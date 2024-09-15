@@ -1,5 +1,4 @@
 import 'package:hive/hive.dart';
-
 import '../enum/enum.dart';
 
 part 'video_model.g.dart';
@@ -19,7 +18,7 @@ class VideoModel extends HiveObject {
   final int clipCountLimit;
 
   @HiveField(4)
-  final VideoQuality quality;
+    final String quality;
 
   VideoModel({
     required this.filePath,

@@ -6,12 +6,14 @@ import 'package:path_provider/path_provider.dart'; // Import path_prov
 import 'package:video_player/video_player.dart';
 import '../Model/video_model.dart';
 import '../enum/enum.dart';
-import '../hive/hive_boxes.dart';
 
 class VideoService {
   final CameraController cameraController;
 
-  VideoService(this.cameraController);
+  VideoService(this.cameraController,
+      {required int videoLength,
+        required int clipCountLimit,
+        required ResolutionPreset quality});
 
   Future<void> startRecording() async {
     try {
@@ -28,7 +30,8 @@ class VideoService {
 
       // Get the directory to save the video
       final directory = await getApplicationSupportDirectory();
-      String filePath = '${directory.path}/CVR_${DateTime.now().millisecondsSinceEpoch}.mp4';
+      String filePath =
+          '${directory.path}/CVR_${DateTime.now().millisecondsSinceEpoch}.mp4';
 
       debugPrint('Saving video to: $filePath');
 
@@ -44,13 +47,9 @@ class VideoService {
         filePath: filePath,
         recordedAt: recordedAt,
         videoLength: videoLength, // Placeholder for video length
-        clipCountLimit: 0,         // Placeholder for clip count limit
-        quality: VideoQuality.high, // Placeholder for video quality
+        clipCountLimit: 0, // Placeholder for clip count limit
+        quality: VideoQuality.high.name, // Placeholder for video quality
       );
-
-      // Save the video metadata to Hive
-      var box = HiveBoxes.getVideosBox();
-      await box.add(video);
 
       return video;
     } catch (e) {

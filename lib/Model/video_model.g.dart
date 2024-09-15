@@ -21,7 +21,7 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
       recordedAt: fields[1] as DateTime,
       videoLength: fields[2] as Duration,
       clipCountLimit: fields[3] as int,
-      quality: fields[4] as VideoQuality,
+      quality: fields[4] as String,
     );
   }
 
