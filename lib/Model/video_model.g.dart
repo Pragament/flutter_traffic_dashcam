@@ -19,17 +19,26 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
     return VideoModel(
       filePath: fields[0] as String,
       recordedAt: fields[1] as DateTime,
+      videoLength: fields[2] as Duration,
+      clipCountLimit: fields[3] as int,
+      quality: fields[4] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, VideoModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.filePath)
       ..writeByte(1)
-      ..write(obj.recordedAt);
+      ..write(obj.recordedAt)
+      ..writeByte(2)
+      ..write(obj.videoLength)
+      ..writeByte(3)
+      ..write(obj.clipCountLimit)
+      ..writeByte(4)
+      ..write(obj.quality);
   }
 
   @override
