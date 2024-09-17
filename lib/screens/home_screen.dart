@@ -92,10 +92,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             },
                             disabledElevation: 0.0,
                             shape: const CircleBorder(),
-                            backgroundColor: ref.watch(recordingStateProvider) ? Colors.black : Colors.red, // Color based on recording state
+                            backgroundColor: ref.watch(recordingStateProvider) ? Colors.black : Colors.white, // Color based on recording state
                             child: Icon(
                               ref.watch(recordingStateProvider) ? Icons.stop : Icons.fiber_manual_record, // Icon based on recording state
-                              color: Colors.white,
+                              color: Colors.red,
                             ),
                           ),
 
