@@ -20,7 +20,19 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Recording List'),
+        title: const Text('Recording List',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+        centerTitle: true,
+        backgroundColor: Colors.blue,
+        leading: Builder(
+                builder: (BuildContext context) {
+                   return IconButton(
+                      icon: const Icon(Icons.arrow_back,color: Colors.white,),
+                       onPressed: () {
+                          context.pop();
+                      },
+                   );
+                 }
+          ),
       ),
       body: videoList.isEmpty
           ? const Center(child: Text('No recordings available'))
