@@ -2,18 +2,22 @@ import 'dart:async';
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart'; // Import path_prov
+import 'package:path_provider/path_provider.dart';
 import 'package:video_player/video_player.dart';
 import '../Model/video_model.dart';
-import '../enum/enum.dart';
 
 class VideoService {
   final CameraController cameraController;
+  final Duration videoLength;
+  final int clipCountLimit;
+  final ResolutionPreset quality;
 
-  VideoService(this.cameraController,
-      {required int videoLength,
-        required int clipCountLimit,
-        required ResolutionPreset quality});
+  VideoService(
+      this.cameraController, {
+        required this.videoLength,
+        required this.clipCountLimit,
+        required this.quality,
+      });
 
   Future<void> startRecording() async {
     try {
@@ -46,10 +50,13 @@ class VideoService {
       VideoModel video = VideoModel(
         filePath: filePath,
         recordedAt: recordedAt,
-        videoLength: videoLength, // Placeholder for video length
-        clipCountLimit: 0, // Placeholder for clip count limit
-        quality: VideoQuality.high.name, // Placeholder for video quality
+        videoLength: videoLength,
+        clipCountLimit: clipCountLimit,
+        quality: quality.name,
       );
+
+      print('Video Length is $videoLength');
+      print('Clip Count is  $clipCountLimit');
 
       return video;
     } catch (e) {
@@ -57,6 +64,33 @@ class VideoService {
       // Consider showing an error message to the user
       return null;
     }
+  }
+
+  Future<List<VideoModel>> recordMultipleClips({
+    required Duration clipLength,
+    required int clipCount,
+  }) async {
+    List<VideoModel> recordedClips = [];
+
+    for (int i = 0; i < clipCount; i++) {
+      try {
+        await startRecording();
+        await Future.delayed(clipLength);
+        VideoModel? clip = await stopRecording();
+
+        if (clip != null) {
+          recordedClips.add(clip);
+        } else {
+          print('Failed to record clip ${i + 1}');
+        }
+
+        await Future.delayed(const Duration(milliseconds: 500));
+      } catch (e) {
+        print('Error recording clip ${i + 1}: $e');
+      }
+    }
+
+    return recordedClips;
   }
 
   Future<Duration> _getVideoDuration(String filePath) async {
@@ -68,3 +102,4 @@ class VideoService {
     return duration;
   }
 }
+

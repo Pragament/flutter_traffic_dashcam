@@ -25,6 +25,8 @@ dependencies:
   permission_handler: ^11.3.1
   path_provider: ^2.1.4
   video_player: ^2.9.1
+  local_notifier: ^0.1.6
+  state_notifier: ^1.0.0
   
 
 dev_dependencies:

@@ -21,29 +21,65 @@ final cameraControllerProvider = FutureProvider<CameraController?>((ref) async {
   }
 });
 
+// Video settings provider
+final settingsProvider = StateNotifierProvider<VideoSettingsNotifier, VideoSettings>(
+      (ref) => VideoSettingsNotifier(),
+);
+
+class VideoSettings {
+  final int clipLength;
+  final int clipCountLimit;
+  final ResolutionPreset videoQuality;
+
+  VideoSettings({
+    required this.clipLength,
+    required this.clipCountLimit,
+    required this.videoQuality,
+  });
+}
+
+class VideoSettingsNotifier extends StateNotifier<VideoSettings> {
+  VideoSettingsNotifier() : super(
+    VideoSettings(
+      clipLength: defaultClipLength,
+      clipCountLimit: defaultClipCountLimit,
+      videoQuality: defaultVideoQuality,
+    ),
+  );
+
+  void updateSettings(int clipLength, int clipCountLimit, ResolutionPreset videoQuality) {
+    state = VideoSettings(
+      clipLength: clipLength,
+      clipCountLimit: clipCountLimit,
+      videoQuality: videoQuality,
+    );
+  }
+}
+
 const defaultClipLength = 1; // 1 minute
 const defaultClipCountLimit = 10; // 10 clips
 const defaultVideoQuality = ResolutionPreset.medium;
 
-
 final videoServiceProvider = Provider<VideoService?>((ref) {
-  final cameraControllerAsyncValue = ref.watch(cameraControllerProvider);
-  return cameraControllerAsyncValue.when(
+  final cameraControllerAsync = ref.watch(cameraControllerProvider);
+  final settings = ref.watch(settingsProvider);
+
+  return cameraControllerAsync.when(
     data: (cameraController) {
-      if (cameraController != null && cameraController.value.isInitialized) {
+      if (cameraController != null) {
         return VideoService(
           cameraController,
-          videoLength: defaultClipLength,
-          clipCountLimit: defaultClipCountLimit,
-          quality: defaultVideoQuality,
+          videoLength: Duration(minutes: settings.clipLength),
+          clipCountLimit: settings.clipCountLimit,
+          quality: settings.videoQuality,
         );
       } else {
         return null;
       }
     },
     loading: () => null,
-    error: (e, stackTrace) {
-      print('Error creating video service: $e');
+    error: (error, stackTrace) {
+      print('Error creating video service: $error');
       return null;
     },
   );
@@ -52,10 +88,10 @@ final videoServiceProvider = Provider<VideoService?>((ref) {
 // Recording state provider
 final recordingStateProvider = StateProvider<bool>((ref) => false);
 
+// Video list provider
 final videoListProvider = StateNotifierProvider<VideoListNotifier, List<VideoModel>>(
       (ref) => VideoListNotifier(),
 );
-
 
 class VideoListNotifier extends StateNotifier<List<VideoModel>> {
   VideoListNotifier() : super([]) {
@@ -74,7 +110,6 @@ class VideoListNotifier extends StateNotifier<List<VideoModel>> {
     }
   }
 
-
   void addVideo(VideoModel video) async {
     try {
       var box = HiveBoxes.getVideosBox();
@@ -85,9 +120,4 @@ class VideoListNotifier extends StateNotifier<List<VideoModel>> {
       print('Error adding video: $e');
     }
   }
-
-
-// void loadVideos(List<VideoModel> videos) {
-//   state = videos;
-// }
 }
