@@ -20,11 +20,16 @@ class VideoModel extends HiveObject {
   @HiveField(4)
     final String quality;
 
+  @HiveField(5)
+  bool isFavorite;
+
   VideoModel({
     required this.filePath,
     required this.recordedAt,
     required this.videoLength,
     required this.clipCountLimit,
     required this.quality,
+    this.isFavorite = false,
   });
 }
+

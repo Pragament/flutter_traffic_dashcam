@@ -22,13 +22,14 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
       videoLength: fields[2] as Duration,
       clipCountLimit: fields[3] as int,
       quality: fields[4] as String,
+      isFavorite: fields[5] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, VideoModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.filePath)
       ..writeByte(1)
@@ -38,7 +39,9 @@ class VideoModelAdapter extends TypeAdapter<VideoModel> {
       ..writeByte(3)
       ..write(obj.clipCountLimit)
       ..writeByte(4)
-      ..write(obj.quality);
+      ..write(obj.quality)
+      ..writeByte(5)
+      ..write(obj.isFavorite);
   }
 
   @override

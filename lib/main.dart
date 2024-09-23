@@ -1,4 +1,3 @@
-import 'package:car_dashcam/enum/enum.dart';
 import 'package:car_dashcam/routes/route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +11,7 @@ void main() async {
   Hive.registerAdapter(VideoModelAdapter());
   Hive.registerAdapter(DurationAdapter()); // Ensure this line is included
   await Hive.openBox<VideoModel>('videos');
-
+  await Hive.openBox<VideoModel>('favoriteVideos');
   runApp(const ProviderScope(child: MyApp()));
 }
 
