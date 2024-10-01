@@ -1,9 +1,10 @@
-import 'dart:async';
-import 'package:car_dashcam/Widgets/video_controls.dart';
-import 'package:car_dashcam/provider/video_provider.dart';
+import 'package:car_dashcam/hive/hive_boxes.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../Model/video_model.dart';
+import '../Widgets/video_controls.dart';
+import '../provider/video_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -16,16 +17,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final cameraControllerAsyncValue = ref.watch(cameraControllerProvider);
-    final videoService = ref.watch(videoServiceProvider);
-
-    // Define the clip settings
-    int clipLength = 1; // in minutes
-    int clipCountLimit = 5;
-    ResolutionPreset videoQuality = ResolutionPreset.medium;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dash Cam',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+        title: const Text('Dash Cam', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
@@ -58,25 +53,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                           child: FloatingActionButton(
                             onPressed: () async {
-                              if (cameraController.value.isInitialized) {
+                              final cameraController = ref.read(cameraControllerProvider).value;
+                              if(ref.read(settingsProvider).isFavorite){
+                                var box = HiveBoxes.getFavVideosBox();
+                                box.clear();
+                              }else{
+                                var box = HiveBoxes.getVideosBox();
+                                box.clear();
+                              }
+                              if (cameraController != null && cameraController.value.isInitialized) {
                                 final isRecording = ref.read(recordingStateProvider); // Check recording state
 
                                 try {
-                                  if (isRecording) {
-                                    // If already recording, stop the recording
-                                    final video = await videoService?.stopRecording();
-                                    if (video != null) {
-                                      ref.read(videoListProvider.notifier).addVideo(video);
-                                    }
-                                    ref.read(recordingStateProvider.notifier).state = false; // Update state to not recording
-                                  } else {
+                                  if (!isRecording) {
                                     // Start recording multiple clips
                                     ref.read(recordingStateProvider.notifier).state = true; // Update state to recording
-                                    await videoService?.recordMultipleClips(
-                                      clipLength: Duration(minutes: clipLength), // Clip length from text field
-                                      clipCount: clipCountLimit, // Clip count from text field
-                                    );
+
+                                    List<VideoModel> recordedClips = await ref.read(videoServiceProvider)?.recordMultipleClips(
+                                      clipLength: Duration(minutes: ref.read(settingsProvider).clipLength),
+                                      clipCount: ref.read(settingsProvider).clipCountLimit,
+                                      quality: ref.read(settingsProvider).videoQuality,
+                                    ) ?? [];
+
+                                    // Add videos to the respective lists after recording all clips
+                                    for (var video in recordedClips) {
+                                      if (ref.read(settingsProvider).isFavorite) {
+                                        ref.read(favoriteVideoListProvider.notifier).addFavVideo(video, context);
+                                      } else {
+                                        ref.read(videoListProvider.notifier).addVideo(video, context);
+                                      }
+                                    }
                                   }
+
+                                  ref.read(recordingStateProvider.notifier).state = false; // Update state to not recording
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text('Error: ${e.toString()}')),
@@ -84,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   ref.read(recordingStateProvider.notifier).state = false; // Reset recording state on error
                                 }
                               } else {
-                                // Handle case when the camera is not initialized
+                                // Handle case when the camera is not initialized or is null
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Camera not initialized')),
                                 );
@@ -98,22 +107,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               color: Colors.red,
                             ),
                           ),
-
                         ),
                       ],
                     ),
                     const SizedBox(height: 10.0),
                     VideoControls(
-                      onSettingsChanged: (int CL, int CCL, ResolutionPreset VD) {
-                        // Handle settings change
-                        setState(() {
-                          clipLength = CL;
-                          clipCountLimit = CCL;
-                          videoQuality = VD;
-                        });
+                      onSettingsChanged: (int clipLength, int clipCountLimit, ResolutionPreset videoQuality, bool isFavVideo) {
+                        // Update the global settingsProvider when settings are changed
+                        ref.read(settingsProvider.notifier).updateSettings(clipLength, clipCountLimit, videoQuality);
 
-                        ref.refresh(videoServiceProvider);
-                        // If you want to update VideoService settings, you might need to create a new VideoService instance or update accordingly
+                        // Update isFavorite state
+                        ref.read(settingsProvider.notifier).updateIsFavorite(isFavVideo);
                       },
                     ),
                   ],
@@ -125,10 +129,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           }
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, stackTrace) => Center(child: Text('Error: $e')),
+        error: (e, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $e'),
+              ElevatedButton(
+                onPressed: () => ref.refresh(cameraControllerProvider),
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+
       ),
     );
   }
 }
-
-
