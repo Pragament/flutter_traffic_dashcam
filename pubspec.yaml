@@ -30,14 +30,16 @@ dependencies:
   video_thumbnail: ^0.5.3
   share_plus: ^10.0.2
   gallery_saver: ^2.3.2
-  
+  google_mlkit_text_recognition: ^0.13.1
+
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   hive_generator: ^2.0.1
   build_runner: ^2.4.11
- 
+
   flutter_lints: ^3.0.0
 
 flutter:
