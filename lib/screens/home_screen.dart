@@ -20,13 +20,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dash Cam', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Dash Cam',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.blue,
       ),
       body: cameraControllerAsyncValue.when(
         data: (cameraController) {
-          if (cameraController != null && cameraController.value.isInitialized) {
+          if (cameraController != null &&
+              cameraController.value.isInitialized) {
             return LayoutBuilder(
               builder: (context, constraints) {
                 double cameraPreviewHeight = constraints.maxHeight * 0.72;
@@ -53,57 +55,95 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           ),
                           child: FloatingActionButton(
                             onPressed: () async {
-                              final cameraController = ref.read(cameraControllerProvider).value;
-                              if(ref.read(settingsProvider).isFavorite){
+                              final cameraController =
+                                  ref.read(cameraControllerProvider).value;
+                              if (ref.read(settingsProvider).isFavorite) {
                                 var box = HiveBoxes.getFavVideosBox();
                                 box.clear();
-                              }else{
+                              } else {
                                 var box = HiveBoxes.getVideosBox();
                                 box.clear();
                               }
-                              if (cameraController != null && cameraController.value.isInitialized) {
-                                final isRecording = ref.read(recordingStateProvider); // Check recording state
+                              if (cameraController != null &&
+                                  cameraController.value.isInitialized) {
+                                final isRecording = ref.read(
+                                    recordingStateProvider); // Check recording state
 
                                 try {
                                   if (!isRecording) {
                                     // Start recording multiple clips
-                                    ref.read(recordingStateProvider.notifier).state = true; // Update state to recording
+                                    ref
+                                            .read(recordingStateProvider.notifier)
+                                            .state =
+                                        true; // Update state to recording
 
-                                    List<VideoModel> recordedClips = await ref.read(videoServiceProvider)?.recordMultipleClips(
-                                      clipLength: Duration(minutes: ref.read(settingsProvider).clipLength),
-                                      clipCount: ref.read(settingsProvider).clipCountLimit,
-                                      quality: ref.read(settingsProvider).videoQuality,
-                                    ) ?? [];
+                                    List<VideoModel> recordedClips = await ref
+                                            .read(videoServiceProvider)
+                                            ?.recordMultipleClips(
+                                              clipLength: Duration(
+                                                  minutes: ref
+                                                      .read(settingsProvider)
+                                                      .clipLength),
+                                              clipCount: ref
+                                                  .read(settingsProvider)
+                                                  .clipCountLimit,
+                                              quality: ref
+                                                  .read(settingsProvider)
+                                                  .videoQuality,
+                                            ) ??
+                                        [];
 
                                     // Add videos to the respective lists after recording all clips
                                     for (var video in recordedClips) {
-                                      if (ref.read(settingsProvider).isFavorite) {
-                                        ref.read(favoriteVideoListProvider.notifier).addFavVideo(video, context);
+                                      if (ref
+                                          .read(settingsProvider)
+                                          .isFavorite) {
+                                        ref
+                                            .read(favoriteVideoListProvider
+                                                .notifier)
+                                            .addFavVideo(video, context);
                                       } else {
-                                        ref.read(videoListProvider.notifier).addVideo(video, context);
+                                        ref
+                                            .read(videoListProvider.notifier)
+                                            .addVideo(video, context);
                                       }
                                     }
                                   }
 
-                                  ref.read(recordingStateProvider.notifier).state = false; // Update state to not recording
+                                  ref
+                                          .read(recordingStateProvider.notifier)
+                                          .state =
+                                      false; // Update state to not recording
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error: ${e.toString()}')),
+                                    SnackBar(
+                                        content:
+                                            Text('Error: ${e.toString()}')),
                                   );
-                                  ref.read(recordingStateProvider.notifier).state = false; // Reset recording state on error
+                                  ref
+                                          .read(recordingStateProvider.notifier)
+                                          .state =
+                                      false; // Reset recording state on error
                                 }
                               } else {
                                 // Handle case when the camera is not initialized or is null
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Camera not initialized')),
+                                  const SnackBar(
+                                      content: Text('Camera not initialized')),
                                 );
                               }
                             },
                             disabledElevation: 0.0,
                             shape: const CircleBorder(),
-                            backgroundColor: ref.watch(recordingStateProvider) ? Colors.black : Colors.white, // Color based on recording state
+                            backgroundColor: ref.watch(recordingStateProvider)
+                                ? Colors.black
+                                : Colors
+                                    .white, // Color based on recording state
                             child: Icon(
-                              ref.watch(recordingStateProvider) ? Icons.stop : Icons.fiber_manual_record, // Icon based on recording state
+                              ref.watch(recordingStateProvider)
+                                  ? Icons.stop
+                                  : Icons
+                                      .fiber_manual_record, // Icon based on recording state
                               color: Colors.red,
                             ),
                           ),
@@ -112,12 +152,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     const SizedBox(height: 10.0),
                     VideoControls(
-                      onSettingsChanged: (int clipLength, int clipCountLimit, ResolutionPreset videoQuality, bool isFavVideo) {
+                      onSettingsChanged: (int clipLength, int clipCountLimit,
+                          ResolutionPreset videoQuality, bool isFavVideo) {
                         // Update the global settingsProvider when settings are changed
-                        ref.read(settingsProvider.notifier).updateSettings(clipLength, clipCountLimit, videoQuality);
+                        ref.read(settingsProvider.notifier).updateSettings(
+                            clipLength, clipCountLimit, videoQuality);
 
                         // Update isFavorite state
-                        ref.read(settingsProvider.notifier).updateIsFavorite(isFavVideo);
+                        ref
+                            .read(settingsProvider.notifier)
+                            .updateIsFavorite(isFavVideo);
                       },
                     ),
                   ],
@@ -141,7 +185,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ],
           ),
         ),
-
       ),
     );
   }

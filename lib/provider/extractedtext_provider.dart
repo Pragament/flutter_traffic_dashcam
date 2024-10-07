@@ -6,15 +6,16 @@ import '../Model/video_model.dart';
 import '../hive/hive_boxes.dart';
 
 // Video list provider
-final ExtractedTextListProvider = StateNotifierProvider<ExtractedTextNotifier, List<ExtractedTextModel>>(
-      (ref) =>ExtractedTextNotifier(),
+final ExtractedTextListProvider =
+    StateNotifierProvider<ExtractedTextNotifier, List<ExtractedTextModel>>(
+  (ref) => ExtractedTextNotifier(),
 );
+
 //video notifier(listen for the change )
 class ExtractedTextNotifier extends StateNotifier<List<ExtractedTextModel>> {
   ExtractedTextNotifier() : super([]) {
-    loadExtractedText();//initializing the text
+    loadExtractedText(); //initializing the text
   }
-
 
   Future<void> loadExtractedText() async {
     try {
@@ -28,16 +29,14 @@ class ExtractedTextNotifier extends StateNotifier<List<ExtractedTextModel>> {
     }
   }
 
-
-  void addText(ExtractedTextModel text , BuildContext context) async {
+  void addText(ExtractedTextModel text, BuildContext context) async {
     try {
-
       var box = HiveBoxes.getExtractedTextBox();
-      await box.put(text.videoPath,text); // Use put to replace the video and text.videoPath as key
+      await box.put(text.videoPath,
+          text); // Use put to replace the video and text.videoPath as key
       state = [...state, text]; // Replace the state with the new list
       print('Current box values: ${box.values.toList()}');
       print('Video Text added/updated successfully. ${text.videoPath}');
-
     } catch (e) {
       print('Error adding/updating video tetxt: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -46,10 +45,3 @@ class ExtractedTextNotifier extends StateNotifier<List<ExtractedTextModel>> {
     }
   }
 }
-
-
-
-
-
-
-

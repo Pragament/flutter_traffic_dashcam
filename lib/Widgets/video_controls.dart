@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class VideoControls extends ConsumerStatefulWidget {
-  final Function(int clipLength, int clipCountLimit, ResolutionPreset videoQuality, bool isFav) onSettingsChanged;
+  final Function(int clipLength, int clipCountLimit,
+      ResolutionPreset videoQuality, bool isFav) onSettingsChanged;
 
   const VideoControls({super.key, required this.onSettingsChanged});
 
@@ -19,7 +20,6 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
   final TextEditingController _clipCountController = TextEditingController();
 
   bool isFav = false;
-
 
   @override
   void dispose() {
@@ -45,7 +45,8 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Clip Length (minutes)',
-                      labelStyle: TextStyle(fontSize: 12.0, fontWeight: FontWeight.normal),
+                      labelStyle: TextStyle(
+                          fontSize: 12.0, fontWeight: FontWeight.normal),
                       border: OutlineInputBorder(),
                     ),
                     onChanged: (value) {
@@ -60,7 +61,8 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       labelText: 'Clip Count Limit',
-                      labelStyle: TextStyle(fontSize: 12.0, fontWeight: FontWeight.normal),
+                      labelStyle: TextStyle(
+                          fontSize: 12.0, fontWeight: FontWeight.normal),
                       border: OutlineInputBorder(),
                     ),
                     onChanged: (value) {
@@ -81,7 +83,8 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                         value: preset,
                         child: Text(
                           preset.name,
-                          style: const TextStyle(fontSize: 15.0, fontWeight: FontWeight.normal),
+                          style: const TextStyle(
+                              fontSize: 15.0, fontWeight: FontWeight.normal),
                         ),
                       );
                     }).toList(),
@@ -115,15 +118,25 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                       width: 180.0,
                       decoration: BoxDecoration(
                           color: Colors.blue,
-                          borderRadius: BorderRadius.circular(15.0)
-                      ),
+                          borderRadius: BorderRadius.circular(15.0)),
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Recordings",style: TextStyle(color: Colors.white, fontSize: 20.0),),
-                          SizedBox(width: 5.0,),
-                          Icon(Icons.list,color: Colors.white,size: 30.0,)],)
-                  ),
+                          Text(
+                            "Recordings",
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 20.0),
+                          ),
+                          SizedBox(
+                            width: 5.0,
+                          ),
+                          Icon(
+                            Icons.list,
+                            color: Colors.white,
+                            size: 30.0,
+                          )
+                        ],
+                      )),
                 ),
                 InkWell(
                   onTap: () {
@@ -137,15 +150,25 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                       width: 180.0,
                       decoration: BoxDecoration(
                           color: Colors.blue,
-                          borderRadius: BorderRadius.circular(15.0)
-                      ),
-                      child:  Row(
+                          borderRadius: BorderRadius.circular(15.0)),
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Favourite",style: TextStyle(color: Colors.white, fontSize: 20.0),),
-                          const SizedBox(width: 5.0,),
-                          Icon(Icons.star,color: isFav ? Colors.yellow : Colors.white,size: 30.0,)],)
-                  ),
+                          const Text(
+                            "Favourite",
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 20.0),
+                          ),
+                          const SizedBox(
+                            width: 5.0,
+                          ),
+                          Icon(
+                            Icons.star,
+                            color: isFav ? Colors.yellow : Colors.white,
+                            size: 30.0,
+                          )
+                        ],
+                      )),
                 )
               ],
             ),
@@ -154,9 +177,11 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
       ],
     );
   }
+
   void _updateSettings() {
     final clipLength = int.tryParse(_clipLengthController.text) ?? 1;
     final clipCountLimit = int.tryParse(_clipCountController.text) ?? 10;
-    widget.onSettingsChanged(clipLength, clipCountLimit, resolutionPreset, isFav);
+    widget.onSettingsChanged(
+        clipLength, clipCountLimit, resolutionPreset, isFav);
   }
 }

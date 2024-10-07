@@ -9,7 +9,7 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:video_player/video_player.dart'; 
+import 'package:video_player/video_player.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:hive/hive.dart';
 
@@ -28,7 +28,6 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
   Widget build(BuildContext context) {
     final videoList = ref.watch(videoListProvider);
     final favVideolist = ref.watch(favoriteVideoListProvider);
-
 
     final filteredVideoList = isFavSelected ? favVideolist : videoList;
 
@@ -90,7 +89,7 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                       );
                     },
                     onLongPress: () {
-                      _showShareSaveDialog(context, video.filePath,ref);
+                      _showShareSaveDialog(context, video.filePath, ref);
                     },
                     child: FutureBuilder<String?>(
                       future: generateThumbnail(video.filePath),
@@ -120,7 +119,8 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
     );
   }
 
-  void _showShareSaveDialog(BuildContext context, String videoPath, WidgetRef ref) {
+  void _showShareSaveDialog(
+      BuildContext context, String videoPath, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -147,26 +147,25 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                 leading: const Icon(Icons.analytics),
                 title: isTextExtracting
                     ? LinearProgressIndicator(
-                     value: 0.7, // Example progress value (70%)
-                     valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Progress bar color
-                     backgroundColor: Colors.grey[300],  // Background color of the bar
-                    )
+                        value: 0.7, // Example progress value (70%)
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue), // Progress bar color
+                        backgroundColor:
+                            Colors.grey[300], // Background color of the bar
+                      )
                     : Text("Extract Text"),
                 onTap: () {
-                   setState(() {
-                   isTextExtracting = true;
-                 });
-                _videoTextGenerator(videoPath);
-
-                  
+                  setState(() {
+                    isTextExtracting = true;
+                  });
+                  _videoTextGenerator(videoPath);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.read_more),
                 title: const Text('Show-Extract Text'),
                 onTap: () {
-
-                  _showExtractedDialog(context,videoPath ,ref);
+                  _showExtractedDialog(context, videoPath, ref);
                 },
               ),
             ],
@@ -175,56 +174,44 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
       },
     );
   }
-  void _showExtractedDialog(BuildContext context , String videoPath ,WidgetRef ref)
-  {
+
+  void _showExtractedDialog(
+      BuildContext context, String videoPath, WidgetRef ref) {
     final extractedTextList = ref.watch(ExtractedTextListProvider);
     ExtractedTextModel extractedText;
-     bool videoExist = false;
-    for(int i=0;i<extractedTextList.length;i++)
-      {
-        if(extractedTextList[i].videoPath == videoPath)
-          {
-            extractedText =extractedTextList[i];
-       final textList= extractedText.text;//seprating the text and time stamp
+    bool videoExist = false;
+    for (int i = 0; i < extractedTextList.length; i++) {
+      if (extractedTextList[i].videoPath == videoPath) {
+        extractedText = extractedTextList[i];
+        final textList = extractedText.text; //seprating the text and time stamp
         ListView.builder(
-      itemCount: extractedTextList.length,
-      itemBuilder: (BuildContext context, index) {
-
-        final text = textList[index];
-        return Padding(
-          padding: const EdgeInsets.all(10.0),
-          child:
-              GestureDetector(
-                child: Row(
-                  children: [
-                    Text(text[index]!),
-                    Spacer(),
-                    Text("$index")
-                  ],
-                ) ,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          VideoPlayerScreen(filePath: videoPath),
-                    ),
-                  );
-                },
-
-              ),
-
-        );
+            itemCount: extractedTextList.length,
+            itemBuilder: (BuildContext context, index) {
+              final text = textList[index];
+              return Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: GestureDetector(
+                  child: Row(
+                    children: [Text(text[index]!), Spacer(), Text("$index")],
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            VideoPlayerScreen(filePath: videoPath),
+                      ),
+                    );
+                  },
+                ),
+              );
+            });
+      } else {
+        print("video not found");
       }
-    );
-          }
-        else
-          {
-            print("video not found");
-          }
-      }//for loop end
-
+    } //for loop end
   }
+
 //extarcting text from image
   Future<String> extractTextFromImage(String imagePath) async {
     final InputImage inputImage = InputImage.fromFilePath(imagePath);
@@ -237,7 +224,7 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
 
   //this funtion extract and analyse the text from video
   Future<void> _videoTextGenerator(String videoPath) async {
-   List< Map<int,String>> extractedTexts = [];
+    List<Map<int, String>> extractedTexts = [];
     try {
       final videoDuration = await _getVideoDuration(videoPath);
       //extracting each frame at every 1 second
@@ -253,13 +240,14 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
           String text = await extractTextFromImage(thumbnailPath);
           print(text);
           //save the
-          extractedTexts.add({i:text});
+          extractedTexts.add({i: text});
           await File(thumbnailPath).delete();
         }
       }
       print(extractedTexts);
       //create ExtractedText Model Object
-  final result = ExtractedTextModel(videoPath: videoPath, text: extractedTexts);
+      final result =
+          ExtractedTextModel(videoPath: videoPath, text: extractedTexts);
       //extract searchable keyword here
       setState(() {
         isTextExtracting = false;
@@ -267,11 +255,9 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
       ref.read(ExtractedTextListProvider.notifier).addText(result, context);
     } catch (e) {
       print('Error in generating text  for $videoPath: $e');
-
     }
   }
 //saving to hive
- 
 
   void _shareVideo(String videoPath) {
     final XFile videoFile = XFile(videoPath);
