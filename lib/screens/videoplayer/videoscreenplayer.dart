@@ -6,9 +6,8 @@ import 'package:video_player/video_player.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String filePath;
-
-
-  const VideoPlayerScreen({super.key, required this.filePath});
+  final Duration videoTimestamp ;
+   VideoPlayerScreen({super.key, required this.filePath, this.videoTimestamp = const Duration(seconds: 0) });
 
   @override
   _VideoPlayerScreenState createState() => _VideoPlayerScreenState();
@@ -28,9 +27,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       DeviceOrientation.landscapeLeft,
     ]);
     _controller = VideoPlayerController.file(File(widget.filePath))
+
       ..initialize().then((_) {
+
+        print("video is playing");
         setState(() {});
+
       });
+    _controller.seekTo(widget.videoTimestamp);
   }
 
   @override
@@ -46,6 +50,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       body: Stack(
         children: [

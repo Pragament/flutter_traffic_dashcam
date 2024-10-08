@@ -21,7 +21,7 @@ class ExtractedTextNotifier extends StateNotifier<List<ExtractedTextModel>> {
     try {
       var box = HiveBoxes.getExtractedTextBox();
       final texts = box.values.toList();
-      state = texts.cast<ExtractedTextModel>(); // Cast to the correct type
+      state = texts; // Cast to the correct type
       print('Extracted Text loaded: ${state.length}');
     } catch (e, stackTrace) {
       print('Error loading Texts: $e');

@@ -1,6 +1,7 @@
 import 'package:car_dashcam/Model/extracted_text_model.dart';
 import 'package:car_dashcam/provider/extractedtext_provider.dart';
 import 'package:car_dashcam/provider/video_provider.dart';
+import 'package:car_dashcam/screens/extractedtextscreen.dart';
 import 'package:car_dashcam/screens/videoplayer/videoscreenplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,17 +156,40 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                       )
                     : Text("Extract Text"),
                 onTap: () {
+
                   setState(() {
                     isTextExtracting = true;
                   });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExtractedTextScreen(videoPath:videoPath, isLoading: isTextExtracting),
+                    ),
+                  );
                   _videoTextGenerator(videoPath);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExtractedTextScreen(videoPath:videoPath, isLoading: isTextExtracting),
+                    ),
+                  );
+
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.read_more),
                 title: const Text('Show-Extract Text'),
                 onTap: () {
-                  _showExtractedDialog(context, videoPath, ref);
+                 // context.go('/extracted_text');
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExtractedTextScreen(videoPath:videoPath, isLoading: false,),
+                    ),
+                  );
                 },
               ),
             ],
@@ -234,19 +258,22 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
           imageFormat: ImageFormat.PNG,
           maxHeight: 220,
           quality: 75,
-          timeMs: i * 100,
+          timeMs: i * 1000,
         );
         if (thumbnailPath != null) {
           String text = await extractTextFromImage(thumbnailPath);
           print(text);
           //save the
-          extractedTexts.add({i: text});
-          await File(thumbnailPath).delete();
+          if (text.isNotEmpty) {
+            extractedTexts.add({i: text});
+            //void addText(ExtractedTextModel text, BuildContext context) async {
+          }
+          // Delete the thumbnail after extraction
         }
       }
-      print(extractedTexts);
+      print(extractedTexts); //print list
       //create ExtractedText Model Object
-      final result =
+      ExtractedTextModel result =
           ExtractedTextModel(videoPath: videoPath, text: extractedTexts);
       //extract searchable keyword here
       setState(() {
