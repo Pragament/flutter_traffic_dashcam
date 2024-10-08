@@ -17,25 +17,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   late VideoPlayerController _controller;
   bool _isPlaying = false;
-
   @override
   void initState() {
     super.initState();
+    initPlayer();
     // Lock orientation to landscape
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
-    _controller = VideoPlayerController.file(File(widget.filePath))
+  }
 
-      ..initialize().then((_) {
-
-        print("video is playing");
-        setState(() {});
-
-      });
+  initPlayer() async {
+    _controller = VideoPlayerController.file(File(widget.filePath));
+    await _controller.initialize();
     _controller.seekTo(widget.videoTimestamp);
   }
+
+
 
   @override
   void dispose() {
