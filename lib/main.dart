@@ -1,3 +1,4 @@
+import 'package:car_dashcam/Model/extracted_text_model.dart';
 import 'package:car_dashcam/routes/route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,8 +11,10 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(VideoModelAdapter());
   Hive.registerAdapter(DurationAdapter()); // Ensure this line is included
+  Hive.registerAdapter(ExtractedTextModelAdapter());
   await Hive.openBox<VideoModel>('videos');
   await Hive.openBox<VideoModel>('favoriteVideos');
+  await Hive.openBox<ExtractedTextModel>('extractedText');
   runApp(const ProviderScope(child: MyApp()));
 }
 

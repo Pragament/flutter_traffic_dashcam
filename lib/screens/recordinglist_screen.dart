@@ -1,4 +1,5 @@
 import 'package:car_dashcam/provider/video_provider.dart';
+import 'package:car_dashcam/screens/extractedtextscreen.dart';
 import 'package:car_dashcam/screens/videoplayer/videoscreenplayer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,7 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:video_player/video_player.dart'; // For getting video duration
+import 'package:video_player/video_player.dart';
 
 class RecordinglistScreen extends ConsumerStatefulWidget {
   const RecordinglistScreen({super.key});
@@ -30,7 +31,8 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
       appBar: AppBar(
         title: Text(
           isFavSelected ? 'Favorite Recordings' : 'Recording List',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: Colors.blue,
@@ -61,58 +63,60 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
       ),
       body: filteredVideoList.isEmpty
           ? Center(
-        child: Text(isFavSelected
-            ? 'No favorite recordings available'
-            : 'No recordings available'),
-      )
+              child: Text(isFavSelected
+                  ? 'No favorite recordings available'
+                  : 'No recordings available'),
+            )
           : ListView.builder(
-        itemCount: filteredVideoList.length,
-        itemBuilder: (BuildContext context, index) {
-          final video = filteredVideoList[index];
+              itemCount: filteredVideoList.length,
+              itemBuilder: (BuildContext context, index) {
+                final video = filteredVideoList[index];
 
-          return Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        VideoPlayerScreen(filePath: video.filePath),
+                return Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              VideoPlayerScreen(filePath: video.filePath),
+                        ),
+                      );
+                    },
+                    onLongPress: () {
+                      _showShareSaveDialog(context, video.filePath, ref);
+                    },
+                    child: FutureBuilder<String?>(
+                      future: generateThumbnail(video.filePath),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.hasData && snapshot.data != null) {
+                            return _buildVideoTile(snapshot.data!, video);
+                          } else {
+                            return _buildErrorThumbnail(video);
+                          }
+                        } else if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox(
+                            height: 220.0,
+                            width: double.infinity,
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        } else {
+                          return _buildErrorThumbnail(video);
+                        }
+                      },
+                    ),
                   ),
                 );
               },
-              onLongPress: () {
-                _showShareSaveDialog(context, video.filePath);
-              },
-              child: FutureBuilder<String?>(
-                future: generateThumbnail(video.filePath),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.hasData && snapshot.data != null) {
-                      return _buildVideoTile(snapshot.data!, video);
-                    } else {
-                      return _buildErrorThumbnail(video);
-                    }
-                  } else if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SizedBox(
-                      height: 220.0,
-                      width: double.infinity,
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  } else {
-                    return _buildErrorThumbnail(video);
-                  }
-                },
-              ),
             ),
-          );
-        },
-      ),
     );
   }
 
-  void _showShareSaveDialog(BuildContext context, String videoPath) {
+  void _showShareSaveDialog(
+      BuildContext context, String videoPath, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -133,6 +137,22 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                 onTap: () {
                   Navigator.of(context).pop();
                   _saveVideoToGallery(videoPath);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.analytics),
+                title: Text("Extract Text"),
+                onTap: () {
+                  // Navigate to the ExtractedTextScreen with the videoPath
+                  context.go(
+                      '/extracted_text/${Uri.encodeComponent(videoPath)}'); // Replace current page
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          ExtractedTextScreen(videoPath: videoPath),
+                    ),
+                  );
                 },
               ),
             ],
@@ -176,7 +196,8 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
   }
 
   Future<Duration> _getVideoDuration(String videoPath) async {
-    final VideoPlayerController controller = VideoPlayerController.file(File(videoPath));
+    final VideoPlayerController controller =
+        VideoPlayerController.file(File(videoPath));
     await controller.initialize();
     final duration = controller.value.duration;
     controller.dispose();
@@ -226,7 +247,8 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
                 } else if (snapshot.hasError) {
-                  return const Text('Error', style: TextStyle(color: Colors.red));
+                  return const Text('Error',
+                      style: TextStyle(color: Colors.red));
                 } else if (snapshot.hasData) {
                   final duration = snapshot.data!;
                   return Text(
@@ -238,7 +260,8 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
                     ),
                   );
                 } else {
-                  return const Text('Duration not available', style: TextStyle(color: Colors.white));
+                  return const Text('Duration not available',
+                      style: TextStyle(color: Colors.white));
                 }
               },
             ),

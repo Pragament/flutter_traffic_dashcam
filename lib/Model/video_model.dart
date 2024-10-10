@@ -18,7 +18,7 @@ class VideoModel extends HiveObject {
   final int clipCountLimit;
 
   @HiveField(4)
-    final String quality;
+  final String quality;
 
   @HiveField(5)
   bool isFavorite;
@@ -30,6 +30,6 @@ class VideoModel extends HiveObject {
     required this.clipCountLimit,
     required this.quality,
     this.isFavorite = false,
+
   });
 }
-

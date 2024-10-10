@@ -1,3 +1,4 @@
+import 'package:car_dashcam/screens/extractedtextscreen.dart';
 import 'package:car_dashcam/screens/recordinglist_screen.dart';
 import 'package:car_dashcam/screens/videoplayer/videoscreenplayer.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +23,24 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: 'video_player',
           builder: (BuildContext context, GoRouterState state) {
-            final filePath = state.pathParameters['filePath']!;
-            return VideoPlayerScreen(filePath: filePath);
+            final filePath = state.uri.queryParameters['filePath']!;
+            // Parse timestamp safely
+            final int? durationInSeconds =
+                int.tryParse(state.uri.queryParameters['timestamp'] ?? '0');
+            final videoTimestamp = Duration(seconds: durationInSeconds ?? 0);
+
+            return VideoPlayerScreen(
+              filePath: filePath,
+              videoTimestamp: videoTimestamp,
+            );
+          },
+        ),
+        GoRoute(
+          path: 'extracted_text/:videoPath',
+          builder: (BuildContext context, GoRouterState state) {
+            final videoPath =
+                Uri.decodeComponent(state.pathParameters['videoPath']!);
+            return ExtractedTextScreen(videoPath: videoPath);
           },
         ),
       ],
