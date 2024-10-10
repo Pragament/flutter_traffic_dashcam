@@ -20,38 +20,29 @@ final GoRouter appRouter = GoRouter(
             return const RecordinglistScreen();
           },
         ),
-        // GoRoute(
-        //   path: 'video_player',
-        //   builder: (BuildContext context, GoRouterState state) {
-        //     final filePath = state.pathParameters['filePath']!;
-        //     final int? durationInSeconds = state.pathParameters['timestamp'] != null
-        //         ? int.tryParse(state.pathParameters['timestamp']!)
-        //         : 0;//assign null when no value is provided
-        //
-        //     // If duration is provided, use it; otherwise, use the default value
-        //     return VideoPlayerScreen(
-        //       filePath: filePath,
-        //       videoTimestamp : durationInSeconds != null
-        //           ? Duration(seconds: durationInSeconds)
-        //           : Duration(seconds: 0), // The screen will handle the default duration if null
-        //     );
-        //   },
-        // ),
         GoRoute(
           path: 'video_player',
           builder: (BuildContext context, GoRouterState state) {
-            final filePath = state.pathParameters['filePath']!;
-            return VideoPlayerScreen(filePath: filePath);
+            final filePath = state.uri.queryParameters['filePath']!;
+            // Parse timestamp safely
+            final int? durationInSeconds =
+                int.tryParse(state.uri.queryParameters['timestamp'] ?? '0');
+            final videoTimestamp = Duration(seconds: durationInSeconds ?? 0);
+
+            return VideoPlayerScreen(
+              filePath: filePath,
+              videoTimestamp: videoTimestamp,
+            );
           },
         ),
-
-        // GoRoute(
-        //   path: 'extracted_text',
-        //   builder: (BuildContext context, GoRouterState state) {
-        //     final videoPath = state.pathParameters['videoPath']!;
-        //     return ExtractedTextScreen(videoPath: videoPath);
-        //   },
-        // ),
+        GoRoute(
+          path: 'extracted_text/:videoPath',
+          builder: (BuildContext context, GoRouterState state) {
+            final videoPath =
+                Uri.decodeComponent(state.pathParameters['videoPath']!);
+            return ExtractedTextScreen(videoPath: videoPath);
+          },
+        ),
       ],
     ),
   ],

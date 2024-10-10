@@ -1,5 +1,3 @@
-import 'package:car_dashcam/Model/extracted_text_model.dart';
-import 'package:car_dashcam/provider/extractedtext_provider.dart';
 import 'package:car_dashcam/provider/video_provider.dart';
 import 'package:car_dashcam/screens/extractedtextscreen.dart';
 import 'package:car_dashcam/screens/videoplayer/videoscreenplayer.dart';
@@ -11,8 +9,6 @@ import 'dart:io';
 import 'package:share_plus/share_plus.dart';
 import 'package:gallery_saver/gallery_saver.dart';
 import 'package:video_player/video_player.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:hive/hive.dart';
 
 class RecordinglistScreen extends ConsumerStatefulWidget {
   const RecordinglistScreen({super.key});
@@ -23,7 +19,6 @@ class RecordinglistScreen extends ConsumerStatefulWidget {
 
 class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
   bool isFavSelected = false;
-  bool isTextExtracting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -146,48 +141,16 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.analytics),
-                title: isTextExtracting
-                    ? LinearProgressIndicator(
-                        value: 0.7, // Example progress value (70%)
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.blue), // Progress bar color
-                        backgroundColor:
-                            Colors.grey[300], // Background color of the bar
-                      )
-                    : Text("Extract Text"),
+                title: Text("Extract Text"),
                 onTap: () {
-
-                  setState(() {
-                    isTextExtracting = true;
-                  });
+                  // Navigate to the ExtractedTextScreen with the videoPath
+                  context.go(
+                      '/extracted_text/${Uri.encodeComponent(videoPath)}'); // Replace current page
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          ExtractedTextScreen(videoPath:videoPath, isLoading: isTextExtracting),
-                    ),
-                  );
-                  _videoTextGenerator(videoPath);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ExtractedTextScreen(videoPath:videoPath, isLoading: isTextExtracting),
-                    ),
-                  );
-
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.read_more),
-                title: const Text('Show-Extract Text'),
-                onTap: () {
-                 // context.go('/extracted_text');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ExtractedTextScreen(videoPath:videoPath, isLoading: false,),
+                          ExtractedTextScreen(videoPath: videoPath),
                     ),
                   );
                 },
@@ -198,93 +161,6 @@ class _RecordinglistScreenState extends ConsumerState<RecordinglistScreen> {
       },
     );
   }
-
-  void _showExtractedDialog(
-      BuildContext context, String videoPath, WidgetRef ref) {
-    final extractedTextList = ref.watch(ExtractedTextListProvider);
-    ExtractedTextModel extractedText;
-    bool videoExist = false;
-    for (int i = 0; i < extractedTextList.length; i++) {
-      if (extractedTextList[i].videoPath == videoPath) {
-        extractedText = extractedTextList[i];
-        final textList = extractedText.text; //seprating the text and time stamp
-        ListView.builder(
-            itemCount: extractedTextList.length,
-            itemBuilder: (BuildContext context, index) {
-              final text = textList[index];
-              return Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: GestureDetector(
-                  child: Row(
-                    children: [Text(text[index]!), Spacer(), Text("$index")],
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            VideoPlayerScreen(filePath: videoPath),
-                      ),
-                    );
-                  },
-                ),
-              );
-            });
-      } else {
-        print("video not found");
-      }
-    } //for loop end
-  }
-
-//extarcting text from image
-  Future<String> extractTextFromImage(String imagePath) async {
-    final InputImage inputImage = InputImage.fromFilePath(imagePath);
-    final textRecognizer = TextRecognizer();
-    final RecognizedText recognizedTextResult =
-        await textRecognizer.processImage(inputImage);
-    textRecognizer.close();
-    return recognizedTextResult.text;
-  }
-
-  //this funtion extract and analyse the text from video
-  Future<void> _videoTextGenerator(String videoPath) async {
-    List<Map<int, String>> extractedTexts = [];
-    try {
-      final videoDuration = await _getVideoDuration(videoPath);
-      //extracting each frame at every 1 second
-      for (int i = 0; i < videoDuration.inSeconds; i++) {
-        final String? thumbnailPath = await VideoThumbnail.thumbnailFile(
-          video: videoPath,
-          imageFormat: ImageFormat.PNG,
-          maxHeight: 220,
-          quality: 75,
-          timeMs: i * 1000,
-        );
-        if (thumbnailPath != null) {
-          String text = await extractTextFromImage(thumbnailPath);
-          print(text);
-          //save the
-          if (text.isNotEmpty) {
-            extractedTexts.add({i: text});
-            //void addText(ExtractedTextModel text, BuildContext context) async {
-          }
-          // Delete the thumbnail after extraction
-        }
-      }
-      print(extractedTexts); //print list
-      //create ExtractedText Model Object
-      ExtractedTextModel result =
-          ExtractedTextModel(videoPath: videoPath, text: extractedTexts);
-      //extract searchable keyword here
-      setState(() {
-        isTextExtracting = false;
-      });
-      ref.read(ExtractedTextListProvider.notifier).addText(result, context);
-    } catch (e) {
-      print('Error in generating text  for $videoPath: $e');
-    }
-  }
-//saving to hive
 
   void _shareVideo(String videoPath) {
     final XFile videoFile = XFile(videoPath);
