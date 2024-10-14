@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:video_player/video_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
+import 'package:image/image.dart' as img;
 
 class ExtractedTextScreen extends ConsumerStatefulWidget {
   final String videoPath;
@@ -36,6 +37,7 @@ class _ExtractedTextScreenState extends ConsumerState<ExtractedTextScreen> {
     textRecognizer.close();
     return recognizedTextResult.text;
   }
+// String
 
   //check it exist or not in hive
   Future<bool> isVideoPathExist(String videoPath, WidgetRef ref) async {
@@ -44,9 +46,7 @@ class _ExtractedTextScreenState extends ConsumerState<ExtractedTextScreen> {
       if (extractedTextList[i].videoPath == videoPath) {
         List<Map<int, String>> textList = extractedTextList[i].text;
         for (int j = 0; j < textList.length; j++) {
-          print("isvideoPathexist function ");
-          await Future.delayed(
-              Duration(milliseconds: 500)); // Adjust delay here
+        //  print("isvideoPathexist function ");
           setState(() {
             extractedTexts.add(textList[j]);
             currentFrameNo = j + 1;
@@ -75,18 +75,18 @@ class _ExtractedTextScreenState extends ConsumerState<ExtractedTextScreen> {
 //else
     try {
       //extracting each frame at every 1 second
-      for (int i = 0; i < videoDuration.inSeconds; i++) {
+      for (int i = 0; i < videoDuration.inSeconds; i+=2) {
         final String? thumbnailPath = await VideoThumbnail.thumbnailFile(
           video: videoPath,
           imageFormat: ImageFormat.PNG,
-          maxHeight: 220,
-          quality: 75,
+          maxHeight:1080,
+          quality: 100,
           timeMs: i * 1000,
         );
         if (thumbnailPath != null) {
           String text = await extractTextFromImage(thumbnailPath);
-          print(text);
-          print("OCR Running");
+        //  print(text);
+         // print("OCR Running");
           //save the
           if (text.isNotEmpty) {
             setState(() {
@@ -96,7 +96,7 @@ class _ExtractedTextScreenState extends ConsumerState<ExtractedTextScreen> {
           setState(() {
             currentFrameNo = i + 1;
           });
-          File(thumbnailPath).delete();
+          File(thumbnailPath).deleteSync();
         }
       }
       //create ExtractedText Model Object

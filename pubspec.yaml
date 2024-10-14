@@ -31,6 +31,7 @@ dependencies:
   share_plus: ^10.0.2
   gallery_saver: ^2.3.2
   google_mlkit_text_recognition: ^0.13.1
+  image: ^4.2.0
 
 
 
