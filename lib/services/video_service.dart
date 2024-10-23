@@ -12,12 +12,13 @@ class VideoService {
   final int clipCountLimit;
   final ResolutionPreset quality;
 
-  VideoService(this.cameraController, {
+  VideoService(
+    this.cameraController, {
     required this.videoLength,
     required this.clipCountLimit,
     required this.quality,
+    
   });
-
 
   /// Deletes old clips from both the video box and favorite box.
 
@@ -30,15 +31,12 @@ class VideoService {
     }
   }
 
-
   Future<VideoModel?> stopRecording() async {
     try {
       XFile videoFile = await cameraController.stopVideoRecording();
       final directory = await getApplicationSupportDirectory();
       String filePath =
-          '${directory.path}/CVR_${DateTime
-          .now()
-          .millisecondsSinceEpoch}.mp4';
+          '${directory.path}/CVR_${DateTime.now().millisecondsSinceEpoch}.mp4';
 
       File savedVideo = File(filePath);
       await savedVideo.writeAsBytes(await videoFile.readAsBytes());
@@ -66,9 +64,7 @@ class VideoService {
     required Duration clipLength,
     required int clipCount,
     required ResolutionPreset quality,
-
   }) async {
-
     List<VideoModel> recordedClips = [];
 
     for (int i = 0; i < clipCount; i++) {
@@ -90,7 +86,6 @@ class VideoService {
 
         // Short delay between recordings, if necessary
         await Future.delayed(const Duration(milliseconds: 500));
-
       } catch (e) {
         print('Error recording clip ${i + 1}: $e');
         // Stop the recording process in case of error
@@ -100,9 +95,32 @@ class VideoService {
 
     return recordedClips;
   }
+  Future<VideoModel?> recordClip({
+    required Duration clipLength,
+    required ResolutionPreset quality,
+  }) async {
+    VideoModel? recordedClip;
 
+      try {
+        await startRecording();
+        await Future.delayed(clipLength);
+        VideoModel? clip = await stopRecording();
 
+        if (clip != null) {
+          recordedClip=clip;
+        } else {
+          print('Failed to record clip');
+        }
+        // Short delay between recordings, if necessary
+        await Future.delayed(const Duration(milliseconds: 500));
+      } catch (e) {
+        print('Error recording clip :$e');
+        // Stop the recording process in case of error
+      }
+    
 
+    return recordedClip;
+  }
 
   Future<Duration> _getVideoDuration(String filePath) async {
     // Use VideoPlayer to get video duration
@@ -112,5 +130,4 @@ class VideoService {
     videoPlayerController.dispose();
     return duration;
   }
-
 }

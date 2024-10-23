@@ -1,3 +1,4 @@
+import 'package:car_dashcam/Widgets/settingpage.dart';
 import 'package:car_dashcam/screens/extractedtextscreen.dart';
 import 'package:car_dashcam/screens/recordinglist_screen.dart';
 import 'package:car_dashcam/screens/videoplayer/videoscreenplayer.dart';
@@ -18,6 +19,12 @@ final GoRouter appRouter = GoRouter(
           path: 'rec_list',
           builder: (BuildContext context, GoRouterState state) {
             return const RecordinglistScreen();
+          },
+        ),
+        GoRoute(
+          path: 'settings',
+          builder: (BuildContext context, GoRouterState state) {
+            return const VideoSettingsPage();
           },
         ),
         GoRoute(

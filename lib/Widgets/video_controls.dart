@@ -5,8 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class VideoControls extends ConsumerStatefulWidget {
-  final Function(int clipLength, int clipCountLimit,
-      ResolutionPreset videoQuality, bool isFav) onSettingsChanged;
+  final Function( bool isFav) onSettingsChanged;
 
   const VideoControls({super.key, required this.onSettingsChanged});
 
@@ -15,93 +14,16 @@ class VideoControls extends ConsumerStatefulWidget {
 }
 
 class _VideoControlsState extends ConsumerState<VideoControls> {
-  ResolutionPreset resolutionPreset = ResolutionPreset.medium;
-  final TextEditingController _clipLengthController = TextEditingController();
-  final TextEditingController _clipCountController = TextEditingController();
+
 
   bool isFav = false;
 
-  @override
-  void dispose() {
-    _clipLengthController.dispose();
-    _clipCountController.dispose();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
-    final makeFav = ref.watch(videoServiceProvider);
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10.0, left: 10.0, right: 10.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _clipLengthController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Clip Length (minutes)',
-                      labelStyle: TextStyle(
-                          fontSize: 12.0, fontWeight: FontWeight.normal),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      _updateSettings();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10.0),
-                Expanded(
-                  child: TextField(
-                    controller: _clipCountController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Clip Count Limit',
-                      labelStyle: TextStyle(
-                          fontSize: 12.0, fontWeight: FontWeight.normal),
-                      border: OutlineInputBorder(),
-                    ),
-                    onChanged: (value) {
-                      _updateSettings();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10.0),
-                Expanded(
-                  child: DropdownButtonFormField<ResolutionPreset>(
-                    decoration: const InputDecoration(
-                      labelText: 'Video Quality',
-                      border: OutlineInputBorder(),
-                    ),
-                    value: resolutionPreset,
-                    items: ResolutionPreset.values.map((preset) {
-                      return DropdownMenuItem(
-                        value: preset,
-                        child: Text(
-                          preset.name,
-                          style: const TextStyle(
-                              fontSize: 15.0, fontWeight: FontWeight.normal),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (ResolutionPreset? value) {
-                      if (value != null) {
-                        setState(() {
-                          resolutionPreset = value;
-                        });
-                        _updateSettings();
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         SizedBox(
           width: double.infinity,
           child: Padding(
@@ -115,7 +37,7 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                   },
                   child: Container(
                       height: 50.0,
-                      width: 180.0,
+                      width: 150.0,
                       decoration: BoxDecoration(
                           color: Colors.blue,
                           borderRadius: BorderRadius.circular(15.0)),
@@ -138,7 +60,7 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                         ],
                       )),
                 ),
-                InkWell(
+                InkWell(//favorite button
                   onTap: () {
                     setState(() {
                       isFav = !isFav;
@@ -147,7 +69,7 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                   },
                   child: Container(
                       height: 50.0,
-                      width: 180.0,
+                      width: 150.0,
                       decoration: BoxDecoration(
                           color: Colors.blue,
                           borderRadius: BorderRadius.circular(15.0)),
@@ -164,11 +86,36 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
                           ),
                           Icon(
                             Icons.star,
-                            color: isFav ? Colors.yellow : Colors.white,
+                            color: ref.read(settingsProvider).isFavorite ? Colors.yellow : Colors.white,
                             size: 30.0,
                           )
                         ],
                       )),
+                ),
+                InkWell(//setting gear button for setting page
+                  onTap: () {
+                    context.go('/settings');
+                  },
+                  child: Container(
+                      height: 50.0,
+                      width: 50.0,
+                      decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(15.0)),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 5.0,
+                          ),
+                          Icon(
+                            Icons.settings,
+                            color:Colors.white,
+                            size: 30.0,
+                          )
+                        ],
+                      )
+                  ),
                 )
               ],
             ),
@@ -179,9 +126,6 @@ class _VideoControlsState extends ConsumerState<VideoControls> {
   }
 
   void _updateSettings() {
-    final clipLength = int.tryParse(_clipLengthController.text) ?? 1;
-    final clipCountLimit = int.tryParse(_clipCountController.text) ?? 10;
-    widget.onSettingsChanged(
-        clipLength, clipCountLimit, resolutionPreset, isFav);
+    widget.onSettingsChanged(isFav);
   }
 }
